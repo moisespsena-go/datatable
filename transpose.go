@@ -11,6 +11,9 @@ type inject struct {
 }
 
 func (rows *Rows) Transpose() {
+	// So, we'll build another array of arrays, this time with
+	// objects to represent the cells that are spanned.
+
 	var cellsToInject = make([][]*inject, len(*rows))
 
 	for i, row := range *rows {
@@ -32,19 +35,31 @@ func (rows *Rows) Transpose() {
 		}
 	}
 
+	// Now we have an array of arrays of the cells we want to inject, so we iterate
+	// over them, splicing the "empty" cells into the array.
 	var r int
+
 	for _, row := range cellsToInject {
 		if len(row) > 0 {
 			var injectIndex, injectCount int
 			for _, col := range row {
+				// The trick here is to ensure we're taking account of previously
+				// injected cells to ensure the new set of cells are injected in
+				// the correct place.
+
 				injectIndex = col.index + injectCount + 1
 				(*rows)[r] = (*rows)[r].splice(injectIndex, 0, col.cells)
+
+				// Keeping a running tally of the number of cells injected helps.
 				injectCount += len(col.cells)
 			}
 		}
 		r++
 	}
 
+	// Now m is an array of arrays, with each element in the topmost
+	// array having an equal number of elements. This makes the transposition
+	// work better.
 	*rows = (*rows).transpose()
 }
 
