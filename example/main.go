@@ -40,17 +40,52 @@ func main() {
 	if err = datatable.DefaultHtmlBuilder.Build(f, rows); err != nil {
 		panic(err)
 	}
+
+	// transposes
+	rows.Transpose()
+
 	if _, err = f.WriteString("<h2>Transposed</h2>"); err != nil {
+		panic(err)
+	}
+
+	// build transposed html table
+	if err = datatable.DefaultHtmlBuilder.Build(f, rows); err != nil {
+		panic(err)
+	}
+
+	// tree example
+	var root datatable.Node
+	root.Add("gender", func(n *datatable.Node) {
+		n.
+			Add("m").
+			Add("f", func(n *datatable.Node) {
+				n.Add("g")
+			}).
+			Add("a")
+	})
+
+	rows = root.BuildTree().Rows
+
+	if _, err = f.WriteString("<h2>Tree</h2>"); err != nil {
+		panic(err)
+	}
+
+	// build html table
+	if err = datatable.DefaultHtmlBuilder.Build(f, rows); err != nil {
 		panic(err)
 	}
 
 	// transposes
 	rows.Transpose()
 
+	if _, err = f.WriteString("<h2>Transposed Tree</h2>"); err != nil {
+		panic(err)
+	}
 	// build transposed html table
 	if err = datatable.DefaultHtmlBuilder.Build(f, rows); err != nil {
 		panic(err)
 	}
+
 	if _, err = f.WriteString("</body>\n</html>"); err != nil {
 		panic(err)
 	}

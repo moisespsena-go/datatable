@@ -19,8 +19,8 @@ func (rows *Rows) Transpose() {
 	for i, row := range *rows {
 		var colSpannedCells Cells
 		for i, c := range row {
-			c.Val = &_cell{index: i, val: c.Val}
-			if c.Colspan > 1 {
+			c.SetVal(&_cell{index: i, val: c.Val()})
+			if c.Colspan() > 1 {
 				colSpannedCells = append(colSpannedCells, c)
 			}
 		}
@@ -29,8 +29,8 @@ func (rows *Rows) Transpose() {
 
 		for j, cel := range colSpannedCells {
 			cellsToInject[i][j] = &inject{
-				index: cel.Val.(*_cell).index,
-				cells: make(Cells, cel.Colspan-1),
+				index: cel.Val().(*_cell).index,
+				cells: make(Cells, cel.Colspan()-1),
 			}
 		}
 	}
@@ -71,10 +71,15 @@ func (rows Rows) transpose() (transposed Rows) {
 		}
 
 		for j := range rows {
+			if len(rows[j]) <= i {
+				continue
+			}
 			cell := rows[j][i]
 			if cell != nil {
-				cell.Val = cell.Val.(*_cell).val
-				cell.Colspan, cell.Rowspan = cell.Rowspan, cell.Colspan
+				cell.SetVal(cell.Val().(*_cell).val)
+				nc, nr := cell.Rowspan(), cell.Colspan()
+				cell.SetColspan(nc)
+				cell.SetRowspan(nr)
 				transposed[i] = append(transposed[i], cell)
 			}
 		}

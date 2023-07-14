@@ -11,7 +11,7 @@ type HtmlBuilder struct {
 	Begin func(w io.Writer) (err error)
 	End   func(w io.Writer) (err error)
 	Row   func(w io.Writer, index int) (close func() error, err error)
-	Cell  func(w io.Writer, rowIndex, cellIndex int, cell *Cell, attrs []string) (err error)
+	Cell  func(w io.Writer, rowIndex, cellIndex int, cell Cell, attrs []string) (err error)
 }
 
 var DefaultHtmlBuilder = &HtmlBuilder{
@@ -32,12 +32,12 @@ var DefaultHtmlBuilder = &HtmlBuilder{
 			return
 		}, nil
 	},
-	Cell: func(w io.Writer, rowIndex, cellIndex int, cell *Cell, attrs []string) (err error) {
+	Cell: func(w io.Writer, rowIndex, cellIndex int, cell Cell, attrs []string) (err error) {
 		if _, err = w.Write([]byte("\t\t\t<td" + strings.Join(attrs, " ") + ">")); err != nil {
 			return
 		}
-		if cell.Val != nil {
-			if _, err = fmt.Fprint(w, cell.Val); err != nil {
+		if val := cell.Val(); val != nil {
+			if _, err = fmt.Fprint(w, val); err != nil {
 				return
 			}
 		}
@@ -62,11 +62,11 @@ func (b *HtmlBuilder) Build(w io.Writer, rows Rows) (err error) {
 		}
 		for cellIndex, cell := range r {
 			attrs = []string{""}
-			if cell.Rowspan > 1 {
-				attrs = append(attrs, `rowspan="`+strconv.Itoa(cell.Rowspan)+`"`)
+			if cell.Rowspan() > 1 {
+				attrs = append(attrs, `rowspan="`+strconv.Itoa(cell.Rowspan())+`"`)
 			}
-			if cell.Colspan > 1 {
-				attrs = append(attrs, `colspan="`+strconv.Itoa(cell.Colspan)+`"`)
+			if cell.Colspan() > 1 {
+				attrs = append(attrs, `colspan="`+strconv.Itoa(cell.Colspan())+`"`)
 			}
 			if len(attrs) == 1 {
 				attrs = nil
